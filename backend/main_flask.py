@@ -1,8 +1,8 @@
-from flask import Flask, request, jsonify, render_template_string, redirect, make_response
+from flask import Flask, request, jsonify, send_from_directory, render_template_string, redirect, make_response, send_file
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from jose import jwt
-import hmac, hashlib, json, time, secrets
+import hmac, hashlib, json, time, secrets, asyncio
 from backend.config import settings
 from backend.auth import create_access_token, pwd_context
 from backend.services.agents import get_all_agents
@@ -15,9 +15,13 @@ from backend.services.okx_connect import okx_connect
 from backend.services.signals_native import native_engine
 from backend.services.freqtrade_bridge import ft_bridge
 from backend.services.verification_gate import verification_gate
-import asyncio
+import threading
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
+app = Flask(__name__, 
+            template_folder=str(Path(__file__).parent / 'templates'),
+            static_folder=str(Path(__file__).parent / 'static'),
+            static_url_path='/static')
+
 ALERTS = []
 
 def push_alert(title, body, level="info"):
@@ -57,7 +61,7 @@ def login():
             resp.set_cookie("access_token", token, httponly=True, max_age=12*3600)
             return resp
         return "Identifiants incorrects", 401
-    return render_template_string(open("backend/templates/login.html").read())
+    return render_template_string(open(Path(__file__).parent / 'templates' / 'login.html').read())
 
 @app.route("/logout")
 def logout():
@@ -68,8 +72,11 @@ def logout():
 @app.route("/dashboard")
 @require_auth
 def dashboard():
-    return render_template_string(open("backend/templates/dashboard.html").read(),
-        trading_mode=settings.TRADING_MODE, agents=get_all_agents(), levels=get_levels(),
+    template = open(Path(__file__).parent / 'templates' / 'dashboard.html').read()
+    return render_template_string(template,
+        trading_mode=settings.TRADING_MODE, 
+        agents=get_all_agents(), 
+        levels=get_levels(),
         testimonial=get_random_testimonial())
 
 @app.route("/api/status")
@@ -112,20 +119,10 @@ def api_emergency():
     res = exchange_service.emergency_stop()
     return jsonify(res)
 
-@app.route("/webhook/signals", methods=["POST"])
-async def webhook():
-    if not settings.WEBHOOK_HMAC_SECRET:
-        return jsonify({"error": "webhook non configure"}), 503
-    body = await request.get_data()
-    expect = hmac.new(settings.WEBHOOK_HMAC_SECRET.encode(), body, hashlib.sha256).hexdigest()
-    if not hmac.compare_digest(request.headers.get("X-UBX-Signature", ""), expect):
-        return jsonify({"error": "signature invalide"}), 401
-    data = json.loads(body)
-    return await native_engine.route(data)
-
 if __name__ == "__main__":
-    import threading
-    def run_engine():
-        asyncio.run(native_engine.loop())
-    threading.Thread(target=run_engine, daemon=True).start()
-    app.run(host="127.0.0.1", port=8080, debug=False)
+    print("=" * 60)
+    print("  ÜBEROKX - Plateforme Trading AI")
+    print("  Mode: PAPER (simulé)")
+    print("  Accès: http://127.0.0.1:8080")
+    print("=" * 60)
+    app.run(host="127.0.0.1", port=8080, debug=False, threaded=True)
