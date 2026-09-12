@@ -1,0 +1,25 @@
+//@version=6
+strategy("UberOKX Emitter", overlay=true, initial_capital=10000, default_qty_type=strategy.fixed, default_qty_value=1, commission_type=strategy.commission.percent, commission_value=0.05, slippage=1)
+int fastLen = input.int(9, "Fast EMA", minval=1)
+int slowLen = input.int(21, "Slow EMA", minval=1)
+float volMult = input.float(1.5, "Volume Mult", step=0.1)
+float atrMult = input.float(0.3, "ATR Min Move", step=0.05)
+int minScore = input.int(3, "Min Score", minval=1, maxval=4)
+float fastEma = ta.ema(close, fastLen)
+float slowEma = ta.ema(close, slowLen)
+float atrVal = ta.atr(14)
+float volAvg = ta.sma(volume, 20)
+bool f1 = not na(volAvg) and volume > volAvg * volMult
+bool f3 = not na(atrVal) and math.abs(close - close[1]) > atrVal * atrMult
+bool f4 = fastEma > slowEma
+int score = (f1 ? 1 : 0) + (f3 ? 1 : 0) + (f4 ? 1 : 0)
+bool longEntry = ta.crossover(fastEma, slowEma) and score >= minScore and f1 and f3
+bool shortEntry = ta.crossunder(fastEma, slowEma) and score <= (4 - minScore) and f1 and f3
+if longEntry and strategy.position_size == 0
+    strategy.entry("Long", strategy.long)
+    alert("UBX LONG | " + syminfo.ticker, alert.freq_once_per_bar_close)
+if shortEntry and strategy.position_size == 0
+    strategy.entry("Short", strategy.short)
+    alert("UBX SHORT | " + syminfo.ticker, alert.freq_once_per_bar_close)
+plot(fastEma, "Fast", fastEma > slowEma ? color.green : color.red)
+plot(slowEma, "Slow", fastEma > slowEma ? color.lime : color.orange)

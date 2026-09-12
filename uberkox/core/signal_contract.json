@@ -1,0 +1,1 @@
+{"symbol":"string","action":"buy|sell","price":"number","qty":"number","interval":"string","time_ms":"integer","nonce":"string","source":"string"}

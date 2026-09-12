@@ -1,0 +1,26 @@
+# Secrets - JAMAIS sur GitHub
+.env
+data/
+user_data/
+verification/
+*.json
+!backend/static/manifest.json
+!uberkox/core/signal_contract.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+venv312/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#00f0ff">
+<link rel="manifest" href="/manifest.json">
+<title>ÜberOKX</title>
+<link rel="stylesheet" href="/static/css/style.css"></head>
+<body>
+<header class="topbar"><div class="logo-area"><div class="logo-hex">UX</div><h1>ÜBEROKX</h1></div>
+<div class="top-controls">
+<button id="lang-fr" class="lang-btn active" onclick="setLang('fr')">FR</button>
+<button id="lang-en" class="lang-btn" onclick="setLang('en')">EN</button>
+<span class="clock" id="clock-time">--:--:--</span>
+<button class="icon-btn" onclick="toggleSound()"></button>
+<button class="icon-btn" onclick="toggleEco()">🌿</button>
+<a class="btn-logout" href="/logout">Déconnexion</a>
+</div></header>
+<div class="main-grid">
+<aside class="agents-panel"><h2 id="agents-title">AGENTS AI — 9/9</h2>
+<div class="agents-list">{% for a in agents %}
+<div class="agent-card" data-agent="{{ a.id }}" style="--agent-color:{{ a.color }}" onclick="selectAgent('{{ a.id }}')">
+<div class="agent-avatar">{{ a.name[0] }}</div>
+<div class="agent-info"><strong>{{ a.name }}</strong><small>{{ a.role_fr }}</small></div>
+</div>{% endfor %}</div></aside>
+<main class="center-panel">
+<section class="hero"><div class="core-ring"></div><div><h2>JARVIS — Cerveau Central</h2>
+<p>Orchestrateur 24/7 • Analyse • Discipline • Exécution</p></div></section>
+<section class="cards">
+<div class="card"><span>Mode</span><strong id="current-mode" class="{{ 'mode-live' if trading_mode=='live' else 'mode-paper' }}">{{ trading_mode|upper }}</strong></div>
+<div class="card"><span>Exchange</span><strong>OKX</strong></div>
+<div class="card"><span>Min.</span><strong>1 USDT</strong></div>
+<div class="card"><span>Statut</span><strong class="ok">OPÉRATIONNEL</strong></div>
+</section>
+<section class="actions">
+<button class="action-btn" onclick="openSettings()">⚙️ <span id="btn-settings">Réglages</span></button>
+<button class="action-btn" onclick="openAcademy()"> <span id="btn-academy">Académie</span></button>
+<button class="action-btn" onclick="openChat()">💬 <span id="btn-chat">Chat</span></button>
+<button class="action-btn" onclick="refreshRadar()"> Radar</button>
+</section>
+<section class="terminal"><div class="term-head"><span id="terminal-title">TERMINAL JARVIS</span><span class="pulse"></span></div>
+<div class="terminal-body" id="terminal"><p>> Système initialisé — <strong>{{ trading_mode|upper }}</strong></p>
+<p>> Discipline is the edge.</p><p class="prompt">> _</p></div></section>
+</main>
+<aside class="right-panel"><div class="signals-box">
+<h3>📡 RADAR TOP 20</h3><div id="radar-list"><p class="muted">Scan...</p></div>
+<h3>🎯 SIGNAUX A+</h3><div id="signals-list"><p class="muted">En attente...</p></div>
+<h3> TÉMOIGNAGE</h3><p class="quote">« {{ testimonial.text_fr }} » — {{ testimonial.author }}</p>
+</div></aside></div>
+<div id="settings-modal" class="modal hidden"><div class="modal-content">
+<div class="modal-head"><h2>RÉGLAGES</h2><button class="close-btn" onclick="closeModal('settings-modal')">×</button></div>
+<div class="modal-body">
+<div class="group"><label>Mode de trading</label>
+<div class="row"><span id="mode-label">PAPER (simulé)</span>
+<label class="switch"><input type="checkbox" id="mode-live-switch" onchange="toggleMode(this.checked)"><span class="slider"></span></label></div>
+<p class="muted" id="verification-badge">Vérification : -</p></div>
+<div class="group"><label>Connexion OKX — 4 méthodes</label>
+<div class="grid2">
+<button class="action-btn" onclick="fastConnect()">⚡ Fast Connect</button>
+<button class="action-btn" onclick="oauthStart()"> OAuth</button>
+<button class="action-btn" onclick="show('signalbot-group')">📡 Signal Bot</button>
+<button class="action-btn" onclick="show('wallet-group')">👛 Wallet</button></div>
+<input type="password" id="okx-key" placeholder="API Key">
+<input type="password" id="okx-secret" placeholder="API Secret">
+<input type="password" id="okx-pass" placeholder="Passphrase">
+<label class="row"><input type="checkbox" id="okx-demo" checked> Demo trading</label>
+<button class="action-btn" onclick="saveOkxKeys()">💾 Enregistrer + vérifier</button></div>
+<div class="group hidden" id="signalbot-group"><label>Signal Bot webhook</label>
+<input type="url" id="sb-url" placeholder="https://...okx.com/...">
+<input type="password" id="sb-secret" placeholder="Secret">
+<button class="action-btn" onclick="saveSignalBot()">Lier</button></div>
+<div class="group hidden" id="wallet-group"><label>Wallet (adresse publique)</label>
+<input type="text" id="w-addr" placeholder="0x... / Solana / BTC">
+<select id="w-chain"><option value="evm">EVM</option><option value="solana">Solana</option><option value="bitcoin">BTC</option><option value="tron">Tron</option></select>
+<button class="action-btn" onclick="saveWallet()">Lier</button></div>
+<div class="group"><label>🛡️ HALO — risque</label>
+<div class="grid2"><input type="number" id="set-risk" value="1" step="0.1"><input type="number" id="set-positions" value="3"></div>
+<button class="action-btn" onclick="saveRisk()">Appliquer</button></div>
+<div class="group"><label>🤖 FreqTrade</label>
+<div class="grid2"><button class="action-btn" onclick="startFtBridge()">▶️ Start</button>
+<button class="action-btn" onclick="stopFtBridge()">⏸️ Stop</button></div>
+<button class="action-btn" onclick="runFtBacktest()">📊 Backtest</button>
+<p class="muted" id="ft-status">Bridge : -</p></div>
+</div></div></div>
+<div id="academy-modal" class="modal hidden"><div class="modal-content">
+<div class="modal-head"><h2> ACADÉMIE</h2><button class="close-btn" onclick="closeModal('academy-modal')">×</button></div>
+<div class="modal-body"><div class="levels">{% for l in levels %}
+<div class="level-card" style="--level-color:{{ l.color }}" onclick="showLevel('{{ l.id }}')"><h3>{{ l.title_fr }}</h3><p>{{ l.lessons|length }} leçons</p></div>
+{% endfor %}</div><div id="lessons-container" class="hidden"></div></div></div></div>
+<div id="chat-modal" class="modal hidden"><div class="modal-content">
+<div class="modal-head"><h2>💬 CHAT JARVIS</h2><button class="close-btn" onclick="closeModal('chat-modal')">×</button></div>
+<div class="modal-body">
+<label class="row"><input type="checkbox" id="chat-deep"> 🧠 Deep (Ollama/OpenAI)</label>
+<div id="chat-history" class="chat-history"></div>
+<div class="row"><input type="text" id="chat-input" placeholder="Question..." onkeydown="if(event.key==='Enter')sendChat()">
+<button class="action-btn" onclick="sendChat()">Envoyer</button></div>
+</div></div></div>
+<script src="/static/js/app.js"></script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(console.error);</script>
+</body></html>
