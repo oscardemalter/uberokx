@@ -66,7 +66,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
         return templates.TemplateResponse("login.html", {"request": request, "error": "Trop de tentatives"}, status_code=429)
     if email == settings.ADMIN_EMAIL and pwd_context.verify(password, settings.ADMIN_PASSWORD_HASH):
         token = create_access_token({"sub": email}, timedelta(hours=12))
-        status_code=303)
+        resp = RedirectResponse("/dashboard", status_code=303)
         resp.set_cookie("access_token", token, httponly=True,
                         secure=settings.ENVIRONMENT == "production", samesite="strict", max_age=12*3600)
         return resp
